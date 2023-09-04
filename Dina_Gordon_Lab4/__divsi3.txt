@@ -1,0 +1,88 @@
+Unsigned:
+__divsi3(int, int):
+        slli    a0,a0,1		# a0 = quotient <<= 1
+        li      a4,32		# a4 = i = 32
+        li      a5,0		# a5 = remainder = 0
+.L6:
+        sub     a3,a5,a1	# a3 = remainder = remainder - b
+        addi    a4,a4,-1	# a4 = i++ (32-1) 
+        slli    a2,a0,1		# a2 = quotient <<= 1
+        blt     a3,zero,.L2	# if (remainder >= 0), go to .L2
+        slli    a5,a3,1		# a5 = remainder <<= 1
+        bge     a0,zero,.L3	# if (quotient < 0), go to .L3
+        ori     a5,a5,1		# a5 = remainder |= 1
+.L3:
+        ori     a0,a2,1		# a0 = quotient = quotient | 1
+        blt     a5,zero,.L9	# if (remainder < 0), go to .L9
+        bne     a4,zero,.L6	# i < 32, for statement, go to .L6
+.L11:
+        ret			# return (quotient)
+.L9:
+        add     a5,a5,a1	# a5 = remainder = remainder + b;
+.L2:
+        slli    a5,a5,1		# a5 = remainder <<= 1
+        blt     a0,zero,.L10	# if (quotient < 0), go to .L10
+        slli    a0,a0,1		# a0 = quotient <<= 1
+.L12:
+        bne     a4,zero,.L6	# i < 32, for statement
+        j       .L11		# jump to .L11
+.L10:
+        ori     a5,a5,1		# a5 = remainder |= 1
+        slli    a0,a0,1		# a0 = quotient <<= 1
+        j       .L12		# quotient = quotient & 0xFFFFFFFE and go to .L12
+
+
+Signed:
+__divsi3(int, int):
+        blt     a0,zero,.L2	# if (a < 0), go to .L2
+        slli    a0,a0,1		# a0 = quotient <<= 1
+        blt     a1,zero,.L7	# if (b < 0) and go to .L7
+        li      a4,32		# a4 = 32, for the for loop
+        li      a5,0		# a5 = remainder = 0
+        j       .L4		# go to .L4
+.L8:
+        slli    a5,a3,1		# a5 =  remainder <<= 1
+        bge     a0,zero,.L14	# if (quotient < 0) then go to .L14
+        ori     a5,a5,1		# a5 = remainder |= 1
+.L14:
+        slli    a0,a0,1		# a0 = quotient <<= 1
+        ori     a0,a0,1		# a0 = quotient | 1
+        blt     a5,zero,.L20	# if (remainder < 0), go to .L20
+        addi    a4,a4,-1	# a4 = i++ (32-1) 
+        beq     a4,zero,.L21	# if i < 32 (for loop), go to .L21
+.L4:
+        sub     a3,a5,a1	# a3 = remainder - b
+        bge     a3,zero,.L8	# if (remainder >= 0) then go to .L8
+        slli    a5,a5,1		# a5 = remainder <<= 1
+        blt     a0,zero,.L9	# if (quotient < 0) then go to .L9
+.L11:
+        slli    a0,a0,1		# a0 = quotient <<= 1
+.L22:
+        addi    a4,a4,-1	# a4 = i++ (32-1)
+        bne     a4,zero,.L4 	# for loop, if i < 32 then go to .L4
+.L21:
+        ret			# return quotient
+.L9:
+        ori     a5,a5,1		# a5 = remainder |= 1
+        slli    a0,a0,1		# a0 = remainder <<= 1
+        j       .L22		# go to .L22 and quotient = quotient & 0xFFFFFFFE
+.L20:
+        add     a5,a5,a1	# a5 = remainder = remainder + b;
+        slli    a5,a5,1		# a5 = remainder <<= 1
+        bge     a0,zero,.L11	# if (quotient < 0) and go to .L11
+        j       .L9		# go to .L9
+.L7:
+        slli    a0,a0,1		# a0 = quotient <<= 1
+        neg     a0,a0		# a0 = -quotient
+        ret			# return quotient
+.L2:
+        neg     a5,a0		# a5 = a = -a
+        slli    a0,a5,1		# a0 = quotient <<= 1
+        blt     a1,zero,.L7	# if (b < 0) go to .L7
+        bne     a1,zero,.L7	# if (remainder >= 0) go to .L7
+        slli    a5,a5,2		# a5 = quotient <<= 1
+        ori     a0,a5,1		# a0 = quotient = quotient | 1
+        neg     a0,a0		# a0 = -quotient
+        ret			# return quotient
+
+Clock cycle: 527

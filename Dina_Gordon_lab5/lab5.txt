@@ -1,0 +1,35 @@
+data hazard: instruction 3 and 4 (from s0), 4 and 5 (from s1)
+control hazard: 5 and 6
+
+cycles with no forwarding: 17 cycles
+add t1, x0, x0
+addi t0, x0, 1
+addi s0, x0, 5
+add s1, x0, s0 
+bge s1, x0, 2
+add t1, t0, t0
+
+
+cycles with no forwarding and with reorder: 15 cycles
+addi s0, x0, 5
+addi t0, x0, 1
+add s1, x0, s0 
+add t1, x0, x0
+bge s1, x0, 2
+add t1, t0, t0
+
+moved 'addi t0, x0, 1' above 'add s1' 'add t1, x0, x0' above beq
+solved the data hazard from s0 and s1
+Didn't elimate the control hazard
+
+
+cycles with forwarding (orgin): 13
+cycles with forwarding (reorder): 13
+Able to elimate all data hazards but not control hazards
+
+branch always taken: 13
+
+branch never taken: 8
+
+two-bit prediction: 17
+

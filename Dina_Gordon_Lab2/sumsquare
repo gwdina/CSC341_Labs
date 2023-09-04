@@ -1,0 +1,33 @@
+
+main:
+	#read in a number from user
+	addi a7, x0, 5	#a7 is the system-call register, adding 5 to it tells it to read int
+	ecall		#ecall tells the assember there was a system call
+	jal ra, sumSquare
+
+
+square:
+	mul a0, a0, a0		#square the number that was read
+	jalr zero, ra, 0
+
+
+sumSquare:
+	#t3 is the loop counter
+	add t3, a0, zero	
+	loop:
+		#if t3 < 0 stop
+		blt t3, zero, end
+		#loop logic
+		add a0, t3, zero	#setting up value to call square (n, n-1,etc)
+		jal ra, square		#jumps to the square function
+		add t4, a0, t4		#t4 holds the sum from square and will be the final answer
+		addi t3, t3, -1		#decrement loop counter by one
+		j loop			#jump back to the top of the loop
+
+end:
+	add a0, t4, zero	#store value to be printed (final answer) in register a0
+	addi a7, zero, 1	#system call to print int
+	ecall
+	addi a7, zero, 10
+	ecall
+	
